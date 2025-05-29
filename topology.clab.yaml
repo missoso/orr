@@ -1,0 +1,50 @@
+name: orr
+mgmt:
+  network: orr
+  ipv4-subnet: 192.168.2.0/24
+
+topology:
+  kinds:
+    ceos:
+      image: ceos:${EOS_VERSION:=4.33.3}
+  nodes:
+  # -------------------------------- #
+  # Core P routers
+    client:
+      kind: ceos
+      mgmt-ipv4: 192.168.2.112
+      startup-config: configs/client.cfg
+    rr:
+      kind: ceos
+      mgmt-ipv4: 192.168.2.113
+      startup-config: configs/rr.cfg
+  # -------------------------------- #
+  # Peering routers
+    r4-gw:
+      kind: ceos
+      mgmt-ipv4: 192.168.2.114
+      startup-config: configs/r4-gw.cfg
+    r5-gw:
+      kind: ceos
+      mgmt-ipv4: 192.168.2.115
+      startup-config: configs/r5-gw.cfg
+  # -------------------------------- #
+  # EBP neighbours
+    r6-ebgp:
+      kind: ceos
+      mgmt-ipv4: 192.168.2.221
+      startup-config: configs/r6-ebgp.cfg
+    r7-ebgp:
+      kind: ceos
+      mgmt-ipv4: 192.168.2.222
+      startup-config: configs/r7-ebgp.cfg
+
+  links:
+  # -------------------------------- #
+  # Core network
+    - endpoints: ["client:eth3", "r4-gw:eth1"]
+    - endpoints: ["rr:eth2", "r4-gw:eth2"]
+    - endpoints: ["rr:eth3", "r5-gw:eth1"]
+  # eBGP peering 
+    - endpoints: ["r4-gw:eth3", "r6-ebgp:eth1"]
+    - endpoints: ["r5-gw:eth3", "r7-ebgp:eth1"]
