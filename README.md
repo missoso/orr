@@ -15,6 +15,32 @@ Left most router is the client, bottom is the route reflector.
 
 From the route reflector perspective the tie breaker regarding the best path to reach 2.0.0.0/8 will be the IGP metric, so best route is via r5-gw, and when this route is reflected this will make the client router also prefer r5-gw as the exit point, which is clearly not ideal. 
 
+## Default behaviour
+2.0.0.0/8 route in the route reflector
+```bash
+rr(config)# show ip route 2/8 detail
+
+ B I      2.0.0.0/8 [200/0] PL
+           via 10.1.1.105/32, IS-IS SR tunnel index 2
+              via 10.1.1.11, Ethernet3, to_r5-gw, label imp-null(3)
+```
+Next hop is .105 (which is r5-gw in the topology), and this route is reflected to the client 
+
+2.0.0.0/8 route in the client
+```bash
+client#show ip route 2/8
+
+ B I      2.0.0.0/8 [200/0]
+           via 10.1.1.105/32, IS-IS SR tunnel index 3
+              via 10.1.1.5, Ethernet3, label 900005
+```
+
+So the path will be:
+
+Client -> r4-gw -> rr -> r5-gw -> r7-ebgp -> 2.0.0.0/8
+
+And that is expected since from the Route Reflector (where the route is reflected) the path rr -> r5-gw is the best one
+
 ## Optimising the route reflection
 Ensure that route reflection considers the IGP metric from the client to the destination and not from the route reflector to the destination
 
@@ -23,7 +49,16 @@ At the route reflector (10.1.1.102 is the loopback of the client):
 address-family ipv4
     neighbor 10.1.1.102 route-reflector-client optimal-route-reflection position peer-address
 ```
+And now in the client:
+```bash
+client#show ip route 2/8
 
+ B I      2.0.0.0/8 [200/0]
+           via 10.1.1.104/32, IS-IS SR tunnel index 1
+              via 10.1.1.5, Ethernet3, label imp-null(3)
+```
+
+Path is now optimal, Client -> r4-gw -> r6-ebgp -> 2.0.0.0/8
 
 
 ## Setup environment
