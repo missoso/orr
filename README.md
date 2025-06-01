@@ -24,7 +24,7 @@ rr(config)# show ip route 2/8 detail
            via 10.1.1.105/32, IS-IS SR tunnel index 2
               via 10.1.1.11, Ethernet3, to_r5-gw, label imp-null(3)
 ```
-Next hop is .105 (which is r5-gw in the topology), and this route is reflected to the client 
+Next hop is 10.1.1.105 (which is r5-gw in the topology), and this route is reflected to the client 
 
 2.0.0.0/8 route in the client
 ```bash
@@ -49,7 +49,7 @@ At the route reflector (10.1.1.102 is the loopback of the client):
 address-family ipv4
     neighbor 10.1.1.102 route-reflector-client optimal-route-reflection position peer-address
 ```
-And now in the client:
+And now in the client (10.1.1.104 is the loopback of r4-gw):
 ```bash
 client#show ip route 2/8
 
